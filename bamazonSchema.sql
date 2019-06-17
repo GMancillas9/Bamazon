@@ -62,7 +62,7 @@ CREATE TABLE products
   INSERT INTO products
     (item_id, product_name, department_name, price, stock_quantity)
   VALUES
-    (7, "Deoderant", "Hygiene", 7, 550);
+    (7, "Deodorant", "Hygiene", 7, 550);
 
   INSERT INTO products
     (item_id, product_name, department_name, price, stock_quantity)

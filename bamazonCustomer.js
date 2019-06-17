@@ -4,7 +4,7 @@ var inquirer = require("inquirer");
 var connection = mysql.createConnection({
   host: "localhost",
 
-  // Your port; if not 3306ba
+  // Your port; if not 8080
   port: 3306,
 
   // Your username
@@ -24,148 +24,59 @@ connection.connect(function (err) {
 function listProducts() {
   connection.query("SELECT * FROM products", function (err, res) {
     for (var i = 0; i < res.length; i++) {
-      console.log(res[i].item_id + " | " + res[i].product_name + " | " + res[i].price);
+      console.log("ID:" + res[i].item_id + " | " + res[i].product_name + " | " + "$" + res[i].price);
     }
     console.log("-----------------------------------");
 
-    // connection.end();
+    purchase();
+
   });
 }
 
 
-//   inquirer
-//     .prompt({
-//       name: "action",
-//       type: "list",
-//       message: "What would you like to do?",
-//       choices: [
-//         "Find songs by artist",
-//         "Find all artists who appear more than once",
-//         "Find data within a specific range",
-//         "Search for a specific song",
-//         "exit"
-//       ]
-//     })
-//     .then(function (answer) {
-//       switch (answer.action) {
-//         case "Find songs by artist":
-//           artistSearch();
-//           break;
+function purchase() {
+  inquirer.prompt([{
+    name: "item_id",
+    type: "input",
+    message: "What is the ID of the product you'd like to purchase?",
 
-//         case "Find all artists who appear more than once":
-//           multiSearch();
-//           break;
+  }, {
+    name: "stock_quantity",
+    type: "input",
+    message: "How many would like to purchase?"
 
-//         case "Find data within a specific range":
-//           rangeSearch();
-//           break;
+  }]).then(function (answer) {
+    connection.query("SELECT * FROM products WHERE products.item_id = ?", [answer.item_id], function (err, res) {
 
-//         case "Search for a specific song":
-//           songSearch();
-//           break;
+      if (res[0].item_id == answer.item_id && res[0].stock_quantity >= parseInt(answer.stock_quantity)) {
+        var totalPrice = res[0].price * parseInt(answer.stock_quantity);
+        console.log("-----------------------------------");
+        console.log("Processing your order.");
+        console.log("-----------------------------------");
+        console.log("Your total for this purchase is: $" + totalPrice);
+        console.log("-----------------------------------");
 
-//         case "exit":
-//           connection.end();
-//           break;
-//       }
-//     });
-// }
 
-// function artistSearch() {
-//   inquirer
-//     .prompt({
-//       name: "artist",
-//       type: "input",
-//       message: "What artist would you like to search for?"
-//     })
-//     .then(function (answer) {
-//       var query = "SELECT position, song, year FROM top5000 WHERE ?";
-//       connection.query(query, { artist: answer.artist }, function (err, res) {
-//         for (var i = 0; i < res.length; i++) {
-//           console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Year: " + res[i].year);
-//         }
-//         runSearch();
-//       });
-//     });
-// }
+        connection.query("UPDATE products SET ? WHERE ?", [{
+          stock_quantity: res[0].stock_quantity - parseInt(answer.stock_quantity)
+        }, {
+          id: res[0].item_id
+        }], function (err, res) {
+          console.log("-----------------------------------");
 
-// function multiSearch() {
-//   var query = "SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1";
-//   connection.query(query, function (err, res) {
-//     for (var i = 0; i < res.length; i++) {
-//       console.log(res[i].artist);
-//     }
-//     runSearch();
-//   });
-// }
+          console.log("Would You Like to Buy Something Else?");
+          console.log("-----------------------------------");
 
-// function rangeSearch() {
-//   inquirer
-//     .prompt([
-//       {
-//         name: "start",
-//         type: "input",
-//         message: "Enter starting position: ",
-//         validate: function (value) {
-//           if (isNaN(value) === false) {
-//             return true;
-//           }
-//           return false;
-//         }
-//       },
-//       {
-//         name: "end",
-//         type: "input",
-//         message: "Enter ending position: ",
-//         validate: function (value) {
-//           if (isNaN(value) === false) {
-//             return true;
-//           }
-//           return false;
-//         }
-//       }
-//     ])
-//     .then(function (answer) {
-//       var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-//       connection.query(query, [answer.start, answer.end], function (err, res) {
-//         for (var i = 0; i < res.length; i++) {
-//           console.log(
-//             "Position: " +
-//             res[i].position +
-//             " || Song: " +
-//             res[i].song +
-//             " || Artist: " +
-//             res[i].artist +
-//             " || Year: " +
-//             res[i].year
-//           );
-//         }
-//         runSearch();
-//       });
-//     });
-// }
+          listProducts();
+        });
 
-// function songSearch() {
-//   inquirer
-//     .prompt({
-//       name: "song",
-//       type: "input",
-//       message: "What song would you like to look for?"
-//     })
-//     .then(function (answer) {
-//       console.log(answer.song);
-//       connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
-//         console.log(
-//           "Position: " +
-//           res[0].position +
-//           " || Song: " +
-//           res[0].song +
-//           " || Artist: " +
-//           res[0].artist +
-//           " || Year: " +
-//           res[0].year
-//         );
-//         runSearch();
-//       });
-//     });
-// }
+      } else if (res[0].item_id === answer.item_id && res[0].stock_quantity < parseInt(answer.stock_quantity)) {
+        console.log("We don't have enough to supply your order!");
+        listProducts();
+      }
+
+    });
+
+  });
+};
+
