@@ -1,12 +1,14 @@
 # Bamazon
 
-This is an Amazon-like storefront utilizing the MySQL database. The app will take in orders from customers and deplete stock from the store's inventory.
+This is an Amazon-like storefront utilizing the MySQL database. 
+The app will take in orders from customers and deplete stock from the store's inventory.
 
-**This application utilizes:**
-* MySQL
-* CLI
-* Node.js
-* Inquirer
+**Frameworks Used:**'
+* SQL + Object Relational Mapping (ORM)
+* MySQL Database + Workbench
+* Command Line Interface (CLI)
+* NodeJS
+* Inquirer Module
 
 **Below is a demo of it's functionality**
 
